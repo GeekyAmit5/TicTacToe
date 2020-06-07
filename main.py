@@ -12,30 +12,104 @@ pygame.init()
 pygame.display.set_caption("Tic Tac Toe")
 pygame.display.set_icon(pygame.image.load("icon.png"))
 win = pygame.display.set_mode((500, 500))
-black = (0, 0, 0)
-white = (255, 255, 255)
-grid = [[" " for x in range(3)] for y in range(3)]
-ai = "X"
-human = "O"
-turn = ai
-fps = pygame.time.Clock()
 background = pygame.image.load("background.jpg")
 board = pygame.image.load("board.png")
 cross = pygame.image.load("cross.png")
 nought = pygame.image.load("nought.png")
-win.blit(background, (0, 0))
-win.blit(board, (0, 0))
+fps = pygame.time.Clock()
+black = (0, 0, 0)
+white = (255, 255, 255)
+run = True
+
+grid = [[" " for x in range(3)] for y in range(3)]
+ai = "X"
+human = "O"
+turn = ai
 
 
-def main():
-    run = True
+def AI():
+    global run
+    win.blit(background, (0, 0))
+    win.blit(board, (0, 0))
     while run:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = pygame.mouse.get_pos()
-                win.blit(cross, (mx, my))
+                print("AI")
+        pygame.display.update()
+        fps.tick(5)
+
+
+def difficulty():
+    global run
+    win.blit(background, (0, 0))
+    cho = pygame.font.SysFont(
+        None, 85).render("Choose Difficulty!", True, white)
+    # win.blit(welcome_text, [55, 80])
+    pygame.draw.rect(win, white, (60, 200, 300, 60))
+    vsFriend = pygame.font.SysFont(
+        None, 50).render("You VS Friend", True, black)
+    win.blit(vsFriend, [75, 210])
+    while run:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mx, my = pygame.mouse.get_pos()
+                AI()
+        pygame.display.update()
+        fps.tick(5)
+
+
+def friend():
+    global run
+    win.blit(background, (0, 0))
+    win.blit(board, (0, 0))
+    while run:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mx, my = pygame.mouse.get_pos()
+                print("friend")
+        pygame.display.update()
+        fps.tick(5)
+
+
+def main():
+    global run
+    win.blit(background, (0, 0))
+    welcome_text = pygame.font.SysFont(
+        None, 85).render("TIC TAC TOE!", True, white)
+    win.blit(welcome_text, [55, 80])
+
+    pygame.draw.rect(win, white, (60, 200, 300, 60))
+    vsFriend = pygame.font.SysFont(
+        None, 50).render("VS FRIEND", True, black)
+    win.blit(vsFriend, [75, 210])
+
+    pygame.draw.rect(win, white, (60, 300, 300, 60))
+    vsAI = pygame.font.SysFont(
+        None, 50).render("You VS AI", True, black)
+    win.blit(vsAI, [85, 310])
+
+    pygame.draw.rect(win, white, (60, 400, 300, 60))
+    vsAI = pygame.font.SysFont(
+        None, 50).render("EXIT!", True, black)
+    win.blit(vsAI, [85, 410])
+
+    while run:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mx, my = pygame.mouse.get_pos()
+                if 60 <= mx <= 360 and 200 <= my <= 260:
+                    friend()
+                elif 60 <= mx <= 360 and 300 <= my <= 360:
+                    difficulty()
         pygame.display.update()
         fps.tick(5)
 
