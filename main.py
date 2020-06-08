@@ -11,15 +11,17 @@ import time
 pygame.init()
 pygame.display.set_caption("Tic Tac Toe")
 pygame.display.set_icon(pygame.image.load("icon.png"))
-win = pygame.display.set_mode((500, 500))
+win = pygame.display.set_mode((400, 500))
 background = pygame.image.load("background.jpg")
 board = pygame.image.load("board.png")
 cross = pygame.image.load("cross.png")
 nought = pygame.image.load("nought.png")
-fps = pygame.time.Clock()
+Clock = pygame.time.Clock()
+fps = 10
 black = (0, 0, 0)
 white = (255, 255, 255)
 run = True
+
 
 grid = [[" " for x in range(3)] for y in range(3)]
 ai = "X"
@@ -27,78 +29,235 @@ human = "O"
 turn = ai
 
 
-def AI():
-    global run
+def opponent(turn):
+    if turn == ai:
+        return human
+    return ai
+
+
+def isWinner(x, y):
+    global run, grid, turn
+    list = []
+    for i in range(3):
+        if grid[x][i] != turn:
+            break
+    else:
+        list = [x, 0, x, 2]
+
+    for i in range(3):
+        if grid[i][y] != turn:
+            break
+    else:
+        list = [0, y, 2, y]
+
+    if x == y:
+        for i in range(3):
+            if grid[i][i] != turn:
+                break
+        else:
+            list = [0, 0, 2, 2]
+
+    if x + y == 2:
+        for i in range(3):
+            if grid[2-i][i] != turn:
+                break
+        else:
+            list = [2, 0, 0, 2]
+
+    if list:
+        turn = opponent(turn)
+        for i in range(3):
+            for j in range(3):
+                grid[i][j] = " "
+
+        time.sleep(1)
+        win.blit(background, (0, 0))
+        text = pygame.font.SysFont(
+            None, 100).render(turn+" WON!", True, white)
+        win.blit(text, [80, 130])
+
+        pygame.draw.rect(win, white, (60, 250, 300, 60))
+        text = pygame.font.SysFont(
+            None, 50).render("Play Again!", True, black)
+        win.blit(text, [85, 260])
+
+        pygame.draw.rect(win, white, (60, 350, 300, 60))
+        text = pygame.font.SysFont(
+            None, 50).render("Main Menu", True, black)
+        win.blit(text, [85, 360])
+
+        while run:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    run = False
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    mx, my = pygame.mouse.get_pos()
+                    if 60 <= mx <= 360 and 250 <= my <= 310:
+                        play()
+                    elif 60 <= mx <= 360 and 350 <= my <= 410:
+                        main()
+            pygame.display.update()
+            Clock.tick(fps)
+
+
+def isTie():
+    global grid, run, turn
+    for i in range(3):
+        for j in range(3):
+            if grid[i][j] == " ":
+                return
+
+    turn = opponent(turn)
+    for i in range(3):
+        for j in range(3):
+            grid[i][j] = " "
+
+    time.sleep(0.5)
     win.blit(background, (0, 0))
-    win.blit(board, (0, 0))
+    text = pygame.font.SysFont(
+        None, 150).render("TIE!", True, white)
+    win.blit(text, [100, 130])
+
+    pygame.draw.rect(win, white, (60, 250, 300, 60))
+    text = pygame.font.SysFont(
+        None, 50).render("Play Again!", True, black)
+    win.blit(text, [85, 260])
+
+    pygame.draw.rect(win, white, (60, 350, 300, 60))
+    text = pygame.font.SysFont(
+        None, 50).render("Main Menu", True, black)
+    win.blit(text, [85, 360])
+
     while run:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = pygame.mouse.get_pos()
-                print("AI")
+                if 60 <= mx <= 360 and 250 <= my <= 310:
+                    play()
+                elif 60 <= mx <= 360 and 350 <= my <= 410:
+                    main()
         pygame.display.update()
-        fps.tick(5)
+        Clock.tick(fps)
+
+
+def play(level=-1):
+    global run, grid, turn
+    win.blit(background, (0, 0))
+    win.blit(board, (10, 10))
+    while run:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mx, my = pygame.mouse.get_pos()
+                x, y = -1, -1
+                if turn == ai:
+                    image = cross
+                else:
+                    image = nought
+                xcord, ycord = 0, 0
+                if 35 < mx < 130:
+                    x, xcord = 0, 40
+                elif 155 < mx < 250:
+                    x, xcord = 1, 160
+                elif 270 < mx < 365:
+                    x, xcord = 2, 275
+
+                if 35 < my < 130:
+                    y, ycord = 0, 40
+                elif 155 < my < 250:
+                    y, ycord = 1, 160
+                elif 270 < my < 365:
+                    y, ycord = 2, 275
+
+                if x != -1 and y != -1:
+                    if grid[x][y] == " ":
+                        win.blit(image, (xcord, ycord))
+                        pygame.display.update()
+                        grid[x][y] = turn
+                        isWinner(turn, x, y)
+                        isTie()
+                        turn = opponent(turn)
+
+        pygame.display.update()
+        Clock.tick(fps)
 
 
 def difficulty():
     global run
     win.blit(background, (0, 0))
-    cho = pygame.font.SysFont(
-        None, 85).render("Choose Difficulty!", True, white)
-    # win.blit(welcome_text, [55, 80])
+    text = pygame.font.SysFont(
+        None, 60).render("Select Difficulty!", True, white)
+    win.blit(text, [40, 60])
+
+    pygame.draw.rect(win, white, (60, 130, 300, 60))
+    text = pygame.font.SysFont(
+        None, 50).render("Easy", True, black)
+    win.blit(text, [85, 140])
+
     pygame.draw.rect(win, white, (60, 200, 300, 60))
-    vsFriend = pygame.font.SysFont(
-        None, 50).render("You VS Friend", True, black)
-    win.blit(vsFriend, [75, 210])
+    text = pygame.font.SysFont(
+        None, 50).render("Medium", True, black)
+    win.blit(text, [85, 210])
+
+    pygame.draw.rect(win, white, (60, 270, 300, 60))
+    text = pygame.font.SysFont(
+        None, 50).render("Hard", True, black)
+    win.blit(text, [85, 280])
+
+    pygame.draw.rect(win, white, (60, 340, 300, 60))
+    text = pygame.font.SysFont(
+        None, 50).render("Impossible", True, black)
+    win.blit(text, [85, 350])
+
+    pygame.draw.rect(win, white, (60, 410, 300, 60))
+    text = pygame.font.SysFont(
+        None, 50).render("Main Menu", True, black)
+    win.blit(text, [85, 420])
+
     while run:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = pygame.mouse.get_pos()
-                AI()
+                if 60 <= mx <= 360 and 130 <= my <= 190:
+                    play(0)
+                elif 60 <= mx <= 360 and 200 <= my <= 260:
+                    play(1)
+                elif 60 <= mx <= 360 and 270 <= my <= 330:
+                    play(2)
+                elif 60 <= mx <= 360 and 340 <= my <= 400:
+                    play(3)
+                elif 60 <= mx <= 360 and 410 <= my <= 460:
+                    main()
         pygame.display.update()
-        fps.tick(5)
-
-
-def friend():
-    global run
-    win.blit(background, (0, 0))
-    win.blit(board, (0, 0))
-    while run:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                run = False
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                mx, my = pygame.mouse.get_pos()
-                print("friend")
-        pygame.display.update()
-        fps.tick(5)
+        Clock.tick(fps)
 
 
 def main():
     global run
     win.blit(background, (0, 0))
-    welcome_text = pygame.font.SysFont(
-        None, 85).render("TIC TAC TOE!", True, white)
-    win.blit(welcome_text, [55, 80])
+    text = pygame.font.SysFont(
+        None, 70).render("TIC TAC TOE!", True, white)
+    win.blit(text, [50, 80])
 
     pygame.draw.rect(win, white, (60, 200, 300, 60))
-    vsFriend = pygame.font.SysFont(
-        None, 50).render("VS FRIEND", True, black)
-    win.blit(vsFriend, [75, 210])
+    text = pygame.font.SysFont(
+        None, 50).render("YOU VS FRIEND", True, black)
+    win.blit(text, [75, 210])
 
     pygame.draw.rect(win, white, (60, 300, 300, 60))
-    vsAI = pygame.font.SysFont(
-        None, 50).render("You VS AI", True, black)
-    win.blit(vsAI, [85, 310])
+    text = pygame.font.SysFont(
+        None, 50).render("YOU VS AI", True, black)
+    win.blit(text, [85, 310])
 
     pygame.draw.rect(win, white, (60, 400, 300, 60))
-    vsAI = pygame.font.SysFont(
+    text = pygame.font.SysFont(
         None, 50).render("EXIT!", True, black)
-    win.blit(vsAI, [85, 410])
+    win.blit(text, [85, 410])
 
     while run:
         for event in pygame.event.get():
@@ -107,11 +266,13 @@ def main():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = pygame.mouse.get_pos()
                 if 60 <= mx <= 360 and 200 <= my <= 260:
-                    friend()
+                    play()
                 elif 60 <= mx <= 360 and 300 <= my <= 360:
                     difficulty()
+                elif 60 <= mx <= 360 and 400 <= my <= 460:
+                    run = False
         pygame.display.update()
-        fps.tick(5)
+        Clock.tick(fps)
 
 
 main()
@@ -119,12 +280,6 @@ main()
 
 # def convert(x, y):
 #     return [y * row // height, x * column // width]
-
-
-# def opponent(turn):
-#     if turn == ai:
-#         return human
-#     return ai
 
 
 # def printGrid():
@@ -144,41 +299,6 @@ main()
 #             if grid[i][j] == " ":
 #                 l.append([i, j])
 #     return l
-
-
-# def isWinner(turn):
-#     for i in range(3):
-#         for j in range(3):
-#             if grid[i][j] != turn:
-#                 break
-#         else:
-#             return True
-#         for j in range(3):
-#             if grid[j][i] != turn:
-#                 break
-#         else:
-#             return True
-
-#     for i in range(3):
-#         if grid[i][i] != turn:
-#             break
-#     else:
-#         return True
-
-#     for i in range(3):
-#         if grid[i][2 - i] != turn:
-#             break
-#     else:
-#         return True
-#     return False
-
-
-# def isTie():
-#     for i in range(3):
-#         for j in range(3):
-#             if grid[i][j] == " ":
-#                 return False
-#     return True
 
 
 # def minimaxPro(alpha, beta, isMaximizing):
