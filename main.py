@@ -13,8 +13,6 @@ pygame.display.set_caption("Tic Tac Toe")
 pygame.display.set_icon(pygame.image.load("icon.png"))
 win = pygame.display.set_mode((400, 500))
 background = pygame.image.load("background.jpg")
-greenboard = pygame.image.load("greenboard.png")
-redboard = pygame.image.load("redboard.png")
 cross = pygame.image.load("cross.png")
 nought = pygame.image.load("nought.png")
 undopic = pygame.image.load("undo.jpg")
@@ -22,9 +20,8 @@ Clock = pygame.time.Clock()
 fps = 10
 black = (0, 0, 0)
 white = (255, 255, 255)
-green = (0, 255, 0)
-red = (255, 0, 0)
-blue = (0, 0, 255)
+green = (51, 204, 89)
+red = (250, 51, 51)
 level = -1
 
 
@@ -39,6 +36,20 @@ wino = 0
 tie = 0
 undoaix = -1
 undoaiy = -1
+
+
+def drawGrid(color):
+    s = 15
+    e = 380
+    d = 122
+    w = 5
+    for i in range(4):
+        pygame.draw.line(win, color,
+                         (s+d*i, s), (s+d*i, e), w)
+
+    for i in range(4):
+        pygame.draw.line(win, color,
+                         (s, s+d*i), (e, s+d*i), w)
 
 
 def opponent(turn):
@@ -93,16 +104,15 @@ def reset():
 
 
 def undo(x, y):
-    global grid, turn, undox, undoy
+    global grid, turn
     grid[x][y] = " "
     turn = opponent(turn)
     xcord, ycord = coordinates(x, y)
     win.blit(undopic, (xcord-10, ycord-10))
     if turn == X:
-        win.blit(redboard, (10, 10))
+        drawGrid(red)
     else:
-        win.blit(greenboard, (10, 10))
-    undox, undoy = -1, -1
+        drawGrid(green)
 
 
 def endText(msg):
@@ -113,7 +123,7 @@ def endText(msg):
     turn = opponent(turn)
     undoaix, undoaiy, undox, undoy = -1, -1, -1, -1
     text = pygame.font.SysFont(
-        None, 100).render(msg, True, black)
+        None, 100).render(msg, True, white)
     win.blit(text, [200 - 20*len(msg), 170])
 
     pygame.draw.rect(win, white, (220, 390, 170, 45))
@@ -211,11 +221,6 @@ def AI():
                 depth += 1
     if level > 1 and depth == 9:
         x, y = random.choice([0, 2]), random.choice([0, 2])
-    elif level > 2 and depth == 8:
-        if grid[1][1] == O:
-            x, y = random.choice([0, 2]), random.choice([0, 2])
-        else:
-            x, y = 1, 1
     elif random.choice([1, 1, level, level >= 2, level == 3]):
         bestScore = -math.inf
         for i in range(3):
@@ -247,24 +252,24 @@ def AI():
         endText("TIE!")
     else:
         turn = O
-        win.blit(greenboard, (10, 10))
+        drawGrid(green)
 
 
 def coordinates(x, y):
     xcord, ycord = 0, 0
     if x == 0:
-        xcord = 40
+        xcord = 30
     elif x == 1:
-        xcord = 160
+        xcord = 150
     elif x == 2:
-        xcord = 275
+        xcord = 270
 
     if y == 0:
-        ycord = 40
+        ycord = 30
     elif y == 1:
-        ycord = 160
+        ycord = 150
     elif y == 2:
-        ycord = 275
+        ycord = 270
     return [xcord, ycord]
 
 
@@ -272,12 +277,12 @@ def play():
     global grid, turn, undox, undoy, winx, wino, tie, undoaix, undoaiy
     win.blit(background, (0, 0))
     if turn == X:
-        win.blit(redboard, (10, 10))
+        drawGrid(red)
     else:
-        win.blit(greenboard, (10, 10))
+        drawGrid(green)
     pygame.draw.rect(win, white, (220, 390, 150, 45))
     text = pygame.font.SysFont(
-        None, 50).render("Reset", True, black)
+        None, 50).render("Clear", True, black)
     win.blit(text, [230, 397])
 
     pygame.draw.rect(win, white, (220, 440, 150, 45))
@@ -286,7 +291,7 @@ def play():
     win.blit(text, [230, 447])
 
     text = pygame.font.SysFont(
-        None, 50).render("SCORE", True, black)
+        None, 50).render("SCORE", True, white)
     win.blit(text, [30, 385])
 
     text = pygame.font.SysFont(
@@ -294,30 +299,30 @@ def play():
     win.blit(text, [80, 416])
 
     text = pygame.font.SysFont(
-        None, 40).render("TIE:", True, black)
-    win.blit(text, [90, 470])
+        None, 40).render("TIE:", True, white)
+    win.blit(text, [91, 470])
 
     if level != -1:
         text = pygame.font.SysFont(
             None, 40).render("AI:", True, red)
-        win.blit(text, [110, 441])
+        win.blit(text, [109, 441])
         if turn == X:
             AI()
     else:
         text = pygame.font.SysFont(
             None, 40).render("FRIEND:", True, red)
-        win.blit(text, [35, 441])
+        win.blit(text, [34, 441])
 
     text = pygame.font.SysFont(
-        None, 45).render(str(wino), True, black)
+        None, 45).render(str(wino), True, green)
     win.blit(text, [150, 416])
 
     text = pygame.font.SysFont(
-        None, 45).render(str(winx), True, black)
+        None, 45).render(str(winx), True, red)
     win.blit(text, [150, 441])
 
     text = pygame.font.SysFont(
-        None, 45).render(str(tie), True, black)
+        None, 45).render(str(tie), True, white)
     win.blit(text, [150, 470])
 
     while True:
@@ -340,9 +345,9 @@ def play():
                 elif 270 < my < 365:
                     y = 2
                 if x != -1 and y != -1:
-                    undox, undoy = x, y
-                    xcord, ycord = coordinates(x, y)
                     if grid[x][y] == " ":
+                        undox, undoy = x, y
+                        xcord, ycord = coordinates(x, y)
                         if turn == X:
                             win.blit(cross, (xcord, ycord))
                         else:
@@ -364,9 +369,9 @@ def play():
                         else:
                             turn = opponent(turn)
                             if turn == X:
-                                win.blit(redboard, (10, 10))
+                                drawGrid(red)
                             else:
-                                win.blit(greenboard, (10, 10))
+                                drawGrid(green)
                             if level != -1:
                                 AI()
 
@@ -375,6 +380,7 @@ def play():
                 elif 220 <= mx <= 370 and 440 <= my <= 485:
                     if undox != -1:
                         undo(undox, undoy)
+                        undox, undoy = -1, -1
                         if undoaix != -1:
                             undo(undoaix, undoaiy)
                             undoaix, undoaiy = -1, -1
