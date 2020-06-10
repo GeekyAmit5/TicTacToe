@@ -6,7 +6,6 @@
 import math
 import random
 import pygame
-import time
 import sys
 
 
@@ -35,6 +34,8 @@ undoy = -1
 winx = 0
 wino = 0
 tie = 0
+undoaix = -1
+undoaiy = -1
 
 
 def opponent(turn):
@@ -79,7 +80,8 @@ def isTie():
 
 
 def reset():
-    global grid, turn
+    global grid, turn, undoaix, undoaiy, undox, undoy
+    undoaix, undoaiy, undox, undoy = -1, -1, -1, -1
     for i in range(3):
         for j in range(3):
             grid[i][j] = " "
@@ -94,18 +96,15 @@ def undo(x, y):
     xcord, ycord = coordinates(x, y)
     win.blit(undopic, (xcord-6, ycord-6))
     win.blit(board, (10, 10))
-    if level != -1 and turn == X:
-        AI()
 
 
 def endText(msg):
-    global grid, turn
+    global grid, turn, undoaix, undoaiy, undox, undoy
     for i in range(3):
         for j in range(3):
             grid[i][j] = " "
     turn = opponent(turn)
-    time.sleep(0.25)
-
+    undoaix, undoaiy, undox, undoy = -1, -1, -1, -1
     text = pygame.font.SysFont(
         None, 100).render(msg, True, white)
     win.blit(text, [200 - 20*len(msg), 170])
@@ -197,7 +196,7 @@ def minimaxPro(alpha, beta, isMaximizing):
 
 
 def AI():
-    global turn, grid, undox, undoy, winx, tie
+    global turn, grid, undoaix, undoaiy, winx, tie
     if random.choice([1, 1, level, level >= 2, level == 3]):
         bestScore = -math.inf
         for i in range(3):
@@ -216,7 +215,7 @@ def AI():
                 x, y = i, j
                 break
 
-    undox, undoy = x, y
+    undoaix, undoaiy = x, y
     xcord, ycord = coordinates(x, y)
     win.blit(cross, (xcord, ycord))
     pygame.display.update()
@@ -250,7 +249,7 @@ def coordinates(x, y):
 
 
 def play():
-    global grid, turn, undox, undoy, winx, wino, tie
+    global grid, turn, undox, undoy, winx, wino, tie, undoaix, undoaiy
     win.blit(background, (0, 0))
     win.blit(board, (10, 10))
 
@@ -348,7 +347,10 @@ def play():
                 elif 220 <= mx <= 370 and 390 <= my <= 435:
                     reset()
                 elif 220 <= mx <= 370 and 440 <= my <= 485:
-                    undo(undox, undoy)
+                    if undox != -1:
+                        undo(undox, undoy)
+                        if undoaix != -1:
+                            undo(undoaix, undoaiy)
 
         pygame.display.update()
         Clock.tick(fps)
