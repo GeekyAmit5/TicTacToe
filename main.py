@@ -7,6 +7,7 @@ import math
 import random
 import pygame
 import time
+import sys
 
 
 pygame.init()
@@ -17,11 +18,11 @@ background = pygame.image.load("background.jpg")
 board = pygame.image.load("board.png")
 cross = pygame.image.load("cross.png")
 nought = pygame.image.load("nought.png")
+undopic = pygame.image.load("undo.jpg")
 Clock = pygame.time.Clock()
 fps = 10
 black = (0, 0, 0)
 white = (255, 255, 255)
-run = True
 level = -1
 
 
@@ -29,6 +30,11 @@ grid = [[" " for x in range(3)] for y in range(3)]
 X = "X"
 O = "O"
 turn = random.choice([X, O])
+undox = -1
+undoy = -1
+winx = 0
+wino = 0
+tie = 0
 
 
 def opponent(turn):
@@ -72,37 +78,57 @@ def isTie():
         return True
 
 
+def reset():
+    global grid, turn
+    for i in range(3):
+        for j in range(3):
+            grid[i][j] = " "
+    turn = random.choice([X, O])
+    play()
+
+
+def undo(x, y):
+    global grid, turn
+    grid[x][y] = " "
+    turn = opponent(turn)
+    xcord, ycord = coordinates(x, y)
+    win.blit(undopic, (xcord-6, ycord-6))
+    win.blit(board, (10, 10))
+    if level != -1 and turn == X:
+        AI()
+
+
 def endText(msg):
-    global run, grid, turn
+    global grid, turn
     for i in range(3):
         for j in range(3):
             grid[i][j] = " "
     turn = opponent(turn)
     time.sleep(0.25)
-    win.blit(background, (0, 0))
+
     text = pygame.font.SysFont(
         None, 100).render(msg, True, white)
-    win.blit(text, [200 - 20*len(msg), 130])
+    win.blit(text, [200 - 20*len(msg), 170])
 
-    pygame.draw.rect(win, white, (60, 250, 300, 60))
+    pygame.draw.rect(win, white, (220, 390, 170, 45))
     text = pygame.font.SysFont(
-        None, 50).render("Play Again!", True, black)
-    win.blit(text, [85, 260])
+        None, 40).render("Play Again!", True, black)
+    win.blit(text, [230, 397])
 
-    pygame.draw.rect(win, white, (60, 350, 300, 60))
+    pygame.draw.rect(win, white, (220, 440, 170, 45))
     text = pygame.font.SysFont(
-        None, 50).render("Main Menu", True, black)
-    win.blit(text, [85, 360])
+        None, 40).render("Main Menu", True, black)
+    win.blit(text, [230, 447])
 
-    while run:
+    while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                run = False
+                sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = pygame.mouse.get_pos()
-                if 60 <= mx <= 360 and 250 <= my <= 310:
+                if 220 <= mx <= 390 and 390 <= my <= 435:
                     play()
-                elif 60 <= mx <= 360 and 350 <= my <= 410:
+                elif 220 <= mx <= 390 and 440 <= my <= 485:
                     main()
         pygame.display.update()
         Clock.tick(fps)
@@ -171,8 +197,8 @@ def minimaxPro(alpha, beta, isMaximizing):
 
 
 def AI():
-    global turn, grid
-    if level == 3 or random.choice([0, 1, level, level == 2]):
+    global turn, grid, undox, undoy, winx, tie
+    if random.choice([1, 1, level, level >= 2, level == 3]):
         bestScore = -math.inf
         for i in range(3):
             for j in range(3):
@@ -189,6 +215,24 @@ def AI():
             if grid[i][j] == " ":
                 x, y = i, j
                 break
+
+    undox, undoy = x, y
+    xcord, ycord = coordinates(x, y)
+    win.blit(cross, (xcord, ycord))
+    pygame.display.update()
+    grid[x][y] = X
+    if winCheck(x, y):
+        winx += 1
+        endText("AI WIN!")
+    elif isTie():
+        tie += 1
+        endText("TIE!")
+    else:
+        turn = O
+
+
+def coordinates(x, y):
+    xcord, ycord = 0, 0
     if x == 0:
         xcord = 40
     elif x == 1:
@@ -202,47 +246,81 @@ def AI():
         ycord = 160
     elif y == 2:
         ycord = 275
-
-    win.blit(cross, (xcord, ycord))
-    pygame.display.update()
-    grid[x][y] = X
-    if winCheck(x, y):
-        endText("AI WIN!")
-    elif isTie():
-        endText("TIE!")
-    else:
-        turn = O
+    return [xcord, ycord]
 
 
 def play():
-    global run, grid, turn
+    global grid, turn, undox, undoy, winx, wino, tie
     win.blit(background, (0, 0))
     win.blit(board, (10, 10))
-    if level != -1 and turn == X:
-        AI()
-    while run:
+
+    pygame.draw.rect(win, white, (220, 390, 150, 45))
+    text = pygame.font.SysFont(
+        None, 50).render("Reset", True, black)
+    win.blit(text, [230, 397])
+
+    pygame.draw.rect(win, white, (220, 440, 150, 45))
+    text = pygame.font.SysFont(
+        None, 50).render("Undo", True, black)
+    win.blit(text, [230, 447])
+
+    text = pygame.font.SysFont(
+        None, 50).render("SCORE", True, black)
+    win.blit(text, [30, 385])
+
+    text = pygame.font.SysFont(
+        None, 40).render("YOU:", True, black)
+    win.blit(text, [80, 416])
+
+    text = pygame.font.SysFont(
+        None, 40).render("TIE:", True, black)
+    win.blit(text, [90, 470])
+
+    if level != -1:
+        text = pygame.font.SysFont(
+            None, 40).render("AI:", True, black)
+        win.blit(text, [110, 441])
+        if turn == X:
+            AI()
+    else:
+        text = pygame.font.SysFont(
+            None, 40).render("FRIEND:", True, black)
+        win.blit(text, [35, 441])
+
+    text = pygame.font.SysFont(
+        None, 45).render(str(wino), True, black)
+    win.blit(text, [150, 416])
+
+    text = pygame.font.SysFont(
+        None, 45).render(str(winx), True, black)
+    win.blit(text, [150, 441])
+
+    text = pygame.font.SysFont(
+        None, 45).render(str(tie), True, black)
+    win.blit(text, [150, 470])
+
+    while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                run = False
+                sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = pygame.mouse.get_pos()
                 x, y = -1, -1
-                xcord, ycord = 0, 0
                 if 35 < mx < 130:
-                    x, xcord = 0, 40
+                    x = 0
                 elif 155 < mx < 250:
-                    x, xcord = 1, 160
+                    x = 1
                 elif 270 < mx < 365:
-                    x, xcord = 2, 275
-
+                    x = 2
                 if 35 < my < 130:
-                    y, ycord = 0, 40
+                    y = 0
                 elif 155 < my < 250:
-                    y, ycord = 1, 160
+                    y = 1
                 elif 270 < my < 365:
-                    y, ycord = 2, 275
-
+                    y = 2
                 if x != -1 and y != -1:
+                    undox, undoy = x, y
+                    xcord, ycord = coordinates(x, y)
                     if grid[x][y] == " ":
                         if turn == X:
                             win.blit(cross, (xcord, ycord))
@@ -251,23 +329,33 @@ def play():
                         pygame.display.update()
                         grid[x][y] = turn
                         if winCheck(x, y):
+                            if turn == X:
+                                winx += 1
+                            else:
+                                wino += 1
                             if level != -1:
                                 endText("YOU WIN!")
                             else:
                                 endText(turn+" WIN!")
                         elif isTie():
+                            tie += 1
                             endText("TIE!")
                         else:
                             turn = opponent(turn)
                             if level != -1:
                                 AI()
 
+                elif 220 <= mx <= 370 and 390 <= my <= 435:
+                    reset()
+                elif 220 <= mx <= 370 and 440 <= my <= 485:
+                    undo(undox, undoy)
+
         pygame.display.update()
         Clock.tick(fps)
 
 
 def difficulty():
-    global run, level
+    global level
     win.blit(background, (0, 0))
     text = pygame.font.SysFont(
         None, 60).render("Select Difficulty!", True, white)
@@ -298,10 +386,10 @@ def difficulty():
         None, 50).render("Main Menu", True, black)
     win.blit(text, [85, 420])
 
-    while run:
+    while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                run = False
+                sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = pygame.mouse.get_pos()
                 if 60 <= mx <= 360 and 130 <= my <= 190:
@@ -323,7 +411,8 @@ def difficulty():
 
 
 def main():
-    global run
+    global level, winx, wino, tie
+    winx, wino, tie = 0, 0, 0
     win.blit(background, (0, 0))
     text = pygame.font.SysFont(
         None, 70).render("TIC TAC TOE!", True, white)
@@ -344,18 +433,19 @@ def main():
         None, 50).render("EXIT!", True, black)
     win.blit(text, [85, 410])
 
-    while run:
+    while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                run = False
+                sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = pygame.mouse.get_pos()
                 if 60 <= mx <= 360 and 200 <= my <= 260:
+                    level = -1
                     play()
                 elif 60 <= mx <= 360 and 300 <= my <= 360:
                     difficulty()
                 elif 60 <= mx <= 360 and 400 <= my <= 460:
-                    exit()
+                    sys.exit()
         pygame.display.update()
         Clock.tick(fps)
 
