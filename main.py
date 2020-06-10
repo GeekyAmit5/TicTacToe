@@ -90,12 +90,13 @@ def reset():
 
 
 def undo(x, y):
-    global grid, turn
+    global grid, turn,undox,undoy,undoaix,undoaiy
     grid[x][y] = " "
     turn = opponent(turn)
     xcord, ycord = coordinates(x, y)
-    win.blit(undopic, (xcord-6, ycord-6))
+    win.blit(undopic, (xcord-10, ycord-10))
     win.blit(board, (10, 10))
+    undoaix, undoaiy, undox, undoy = -1, -1, -1, -1
 
 
 def endText(msg):
