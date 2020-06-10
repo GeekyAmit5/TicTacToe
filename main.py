@@ -94,7 +94,7 @@ def reset():
 
 
 def undo(x, y):
-    global grid, turn, undox, undoy, undoaix, undoaiy
+    global grid, turn, undox, undoy
     grid[x][y] = " "
     turn = opponent(turn)
     xcord, ycord = coordinates(x, y)
@@ -103,7 +103,7 @@ def undo(x, y):
         win.blit(redboard, (10, 10))
     else:
         win.blit(greenboard, (10, 10))
-    undoaix, undoaiy, undox, undoy = -1, -1, -1, -1
+    undox, undoy = -1, -1
 
 
 def endText(msg):
@@ -378,6 +378,7 @@ def play():
                         undo(undox, undoy)
                         if undoaix != -1:
                             undo(undoaix, undoaiy)
+                            undoaix, undoaiy = -1, -1
 
         pygame.display.update()
         Clock.tick(fps)
