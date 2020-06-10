@@ -197,7 +197,19 @@ def minimaxPro(alpha, beta, isMaximizing):
 
 def AI():
     global turn, grid, undoaix, undoaiy, winx, tie
-    if random.choice([1, 1, level, level >= 2, level == 3]):
+    depth = 0
+    for i in range(3):
+        for j in range(3):
+            if grid[i][j] == " ":
+                depth += 1
+    if level > 1 and depth == 9:
+        x, y = random.choice([0, 2]), random.choice([0, 2])
+    elif level > 2 and depth == 8:
+        if grid[1][1] == O:
+            x, y = random.choice([0, 2]), random.choice([0, 2])
+        else:
+            x, y = 1, 1
+    elif random.choice([1, 1, level, level >= 2, level == 3]):
         bestScore = -math.inf
         for i in range(3):
             for j in range(3):
