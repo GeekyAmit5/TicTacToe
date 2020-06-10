@@ -14,7 +14,8 @@ pygame.display.set_caption("Tic Tac Toe")
 pygame.display.set_icon(pygame.image.load("icon.png"))
 win = pygame.display.set_mode((400, 500))
 background = pygame.image.load("background.jpg")
-board = pygame.image.load("board.png")
+greenboard = pygame.image.load("greenboard.png")
+redboard = pygame.image.load("redboard.png")
 cross = pygame.image.load("cross.png")
 nought = pygame.image.load("nought.png")
 undopic = pygame.image.load("undo.jpg")
@@ -22,6 +23,9 @@ Clock = pygame.time.Clock()
 fps = 10
 black = (0, 0, 0)
 white = (255, 255, 255)
+green = (0, 255, 0)
+red = (255, 0, 0)
+blue = (0, 0, 255)
 level = -1
 
 
@@ -90,12 +94,15 @@ def reset():
 
 
 def undo(x, y):
-    global grid, turn,undox,undoy,undoaix,undoaiy
+    global grid, turn, undox, undoy, undoaix, undoaiy
     grid[x][y] = " "
     turn = opponent(turn)
     xcord, ycord = coordinates(x, y)
     win.blit(undopic, (xcord-10, ycord-10))
-    win.blit(board, (10, 10))
+    if turn == X:
+        win.blit(redboard, (10, 10))
+    else:
+        win.blit(greenboard, (10, 10))
     undoaix, undoaiy, undox, undoy = -1, -1, -1, -1
 
 
@@ -107,7 +114,7 @@ def endText(msg):
     turn = opponent(turn)
     undoaix, undoaiy, undox, undoy = -1, -1, -1, -1
     text = pygame.font.SysFont(
-        None, 100).render(msg, True, white)
+        None, 100).render(msg, True, black)
     win.blit(text, [200 - 20*len(msg), 170])
 
     pygame.draw.rect(win, white, (220, 390, 170, 45))
@@ -241,6 +248,7 @@ def AI():
         endText("TIE!")
     else:
         turn = O
+        win.blit(greenboard, (10, 10))
 
 
 def coordinates(x, y):
@@ -264,8 +272,10 @@ def coordinates(x, y):
 def play():
     global grid, turn, undox, undoy, winx, wino, tie, undoaix, undoaiy
     win.blit(background, (0, 0))
-    win.blit(board, (10, 10))
-
+    if turn == X:
+        win.blit(redboard, (10, 10))
+    else:
+        win.blit(greenboard, (10, 10))
     pygame.draw.rect(win, white, (220, 390, 150, 45))
     text = pygame.font.SysFont(
         None, 50).render("Reset", True, black)
@@ -281,7 +291,7 @@ def play():
     win.blit(text, [30, 385])
 
     text = pygame.font.SysFont(
-        None, 40).render("YOU:", True, black)
+        None, 40).render("YOU:", True, green)
     win.blit(text, [80, 416])
 
     text = pygame.font.SysFont(
@@ -290,13 +300,13 @@ def play():
 
     if level != -1:
         text = pygame.font.SysFont(
-            None, 40).render("AI:", True, black)
+            None, 40).render("AI:", True, red)
         win.blit(text, [110, 441])
         if turn == X:
             AI()
     else:
         text = pygame.font.SysFont(
-            None, 40).render("FRIEND:", True, black)
+            None, 40).render("FRIEND:", True, red)
         win.blit(text, [35, 441])
 
     text = pygame.font.SysFont(
@@ -354,6 +364,10 @@ def play():
                             endText("TIE!")
                         else:
                             turn = opponent(turn)
+                            if turn == X:
+                                win.blit(redboard, (10, 10))
+                            else:
+                                win.blit(greenboard, (10, 10))
                             if level != -1:
                                 AI()
 
