@@ -1,6 +1,5 @@
 # This is a game called tic tac toe
 # you can play with friend or AI
-# add score,reset and undo button
 
 
 import math
