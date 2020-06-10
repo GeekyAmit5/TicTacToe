@@ -258,14 +258,14 @@ def AI():
 def coordinates(x, y):
     xcord, ycord = 0, 0
     if x == 0:
-        xcord = 30
+        xcord = 28
     elif x == 1:
         xcord = 150
     elif x == 2:
         xcord = 270
 
     if y == 0:
-        ycord = 30
+        ycord = 28
     elif y == 1:
         ycord = 150
     elif y == 2:
