@@ -5,37 +5,7 @@
 import math
 import random
 import pygame
-import sys
-
-
-pygame.init()
-pygame.display.set_caption("Tic Tac Toe")
-pygame.display.set_icon(pygame.image.load("icon.png"))
-win = pygame.display.set_mode((400, 500))
-background = pygame.image.load("background.jpg")
-cross = pygame.image.load("cross.png")
-nought = pygame.image.load("nought.png")
-undopic = pygame.image.load("undo.jpg")
-Clock = pygame.time.Clock()
-fps = 10
-black = (0, 0, 0)
-white = (255, 255, 255)
-green = (51, 204, 89)
-red = (250, 51, 51)
-level = -1
-
-
-grid = [[" " for x in range(3)] for y in range(3)]
-X = "X"
-O = "O"
-turn = random.choice([X, O])
-undox = -1
-undoy = -1
-winx = 0
-wino = 0
-tie = 0
-undoaix = -1
-undoaiy = -1
+import os
 
 
 def drawGrid(color):
@@ -99,7 +69,6 @@ def reset():
     for i in range(3):
         for j in range(3):
             grid[i][j] = " "
-    turn = random.choice([X, O])
     play()
 
 
@@ -116,11 +85,11 @@ def undo(x, y):
 
 
 def endText(msg):
-    global grid, turn, undoaix, undoaiy, undox, undoy
+    global grid, turn, undoaix, undoaiy, undox, undoy, last_turn
     for i in range(3):
         for j in range(3):
             grid[i][j] = " "
-    turn = opponent(turn)
+    turn = opponent(last_turn)
     undoaix, undoaiy, undox, undoy = -1, -1, -1, -1
     text = pygame.font.SysFont(
         None, 100).render(msg, True, white)
@@ -139,7 +108,7 @@ def endText(msg):
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                sys.exit()
+                exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = pygame.mouse.get_pos()
                 if 220 <= mx <= 390 and 390 <= my <= 435:
@@ -215,6 +184,7 @@ def minimaxPro(alpha, beta, isMaximizing):
 def AI():
     global turn, grid, undoaix, undoaiy, winx, tie
     depth = 0
+    pygame.time.delay(200)
     for i in range(3):
         for j in range(3):
             if grid[i][j] == " ":
@@ -274,11 +244,13 @@ def coordinates(x, y):
 
 
 def play():
-    global grid, turn, undox, undoy, winx, wino, tie, undoaix, undoaiy
+    global grid, turn, undox, undoy, winx, wino, tie, undoaix, undoaiy, last_turn
     win.blit(background, (0, 0))
     if turn == X:
+        last_turn = X
         drawGrid(red)
     else:
+        last_turn = O
         drawGrid(green)
     pygame.draw.rect(win, white, (220, 390, 150, 45))
     text = pygame.font.SysFont(
@@ -328,7 +300,7 @@ def play():
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                sys.exit()
+                exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = pygame.mouse.get_pos()
                 x, y = -1, -1
@@ -372,6 +344,7 @@ def play():
                                 drawGrid(red)
                             else:
                                 drawGrid(green)
+                            pygame.display.update()
                             if level != -1:
                                 AI()
 
@@ -424,7 +397,7 @@ def difficulty():
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                sys.exit()
+                exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = pygame.mouse.get_pos()
                 if 60 <= mx <= 360 and 130 <= my <= 190:
@@ -471,7 +444,7 @@ def main():
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                sys.exit()
+                exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = pygame.mouse.get_pos()
                 if 60 <= mx <= 360 and 200 <= my <= 260:
@@ -480,9 +453,41 @@ def main():
                 elif 60 <= mx <= 360 and 300 <= my <= 360:
                     difficulty()
                 elif 60 <= mx <= 360 and 400 <= my <= 460:
-                    sys.exit()
+                    exit()
         pygame.display.update()
         Clock.tick(fps)
+
+
+pygame.init()
+pygame.display.set_caption("Tic Tac Toe")
+pygame.display.set_icon(pygame.image.load(
+    os.path.join("data/images", "icon.png")))
+win = pygame.display.set_mode((400, 500))
+background = pygame.image.load(os.path.join("data/images", "background.jpg"))
+cross = pygame.image.load(os.path.join("data/images", "cross.png"))
+nought = pygame.image.load(os.path.join("data/images", "nought.png"))
+undopic = pygame.image.load(os.path.join("data/images", "undo.jpg"))
+Clock = pygame.time.Clock()
+fps = 10
+black = (0, 0, 0)
+white = (255, 255, 255)
+green = (51, 204, 89)
+red = (250, 51, 51)
+level = -1
+
+
+grid = [[" " for x in range(3)] for y in range(3)]
+X = "X"
+O = "O"
+turn = random.choice([X, O])
+undox = -1
+undoy = -1
+winx = 0
+wino = 0
+tie = 0
+undoaix = -1
+undoaiy = -1
+last_turn = turn
 
 
 main()
