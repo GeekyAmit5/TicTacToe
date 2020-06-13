@@ -64,8 +64,9 @@ def isTie():
 
 
 def reset():
-    global grid, turn, undoaix, undoaiy, undox, undoy
+    global grid, turn, undoaix, undoaiy, undox, undoy, depth
     undoaix, undoaiy, undox, undoy = -1, -1, -1, -1
+    depth = 0
     for i in range(3):
         for j in range(3):
             grid[i][j] = " "
@@ -73,10 +74,11 @@ def reset():
 
 
 def undo(x, y):
-    global grid, turn
+    global grid, turn, depth
     grid[x][y] = " "
     turn = opponent(turn)
     win.blit(undopic, (18+122*x, 18+122*y))
+    depth -= 1
     if turn == X:
         drawGrid(red)
     else:
@@ -85,20 +87,14 @@ def undo(x, y):
 
 def endText(msg):
     reset()
-    text = pygame.font.SysFont(
-        None, 100).render(msg, True, white)
-    win.blit(text, [200 - 20*len(msg), 170])
-
+    win.blit(pygame.font.SysFont(
+        None, 100).render(msg, True, white), [200 - 20*len(msg), 170])
     pygame.draw.rect(win, white, (220, 390, 170, 45))
-    text = pygame.font.SysFont(
-        None, 40).render("Play Again!", True, black)
-    win.blit(text, [230, 397])
-
+    win.blit(pygame.font.SysFont(
+        None, 40).render("Play Again!", True, black), [230, 397])
     pygame.draw.rect(win, white, (220, 440, 170, 45))
-    text = pygame.font.SysFont(
-        None, 40).render("Main Menu", True, black)
-    win.blit(text, [230, 447])
-
+    win.blit(pygame.font.SysFont(
+        None, 40).render("Main Menu", True, black), [230, 447])
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -149,12 +145,7 @@ def minimaxPro(x, y, alpha, beta, isMaximizing):
 
 
 def AI():
-    global turn, undoaix, undoaiy, winx, tie
-    depth = 0
-    for i in range(3):
-        for j in range(3):
-            if grid[i][j] == " ":
-                depth += 1
+    global turn, undoaix, undoaiy, winx, tie, depth
     if depth == 9 and level > 1:
         x = random.randint(0, 2)
         if x == 1:
@@ -182,6 +173,7 @@ def AI():
     win.blit(cross, (27+122*x, 27+122*y))
     pygame.time.delay(200)
     pygame.display.update()
+    depth += 1
     if winCheck(X, x, y):
         winx += 1
         endText("AI WIN!")
@@ -194,7 +186,7 @@ def AI():
 
 
 def play():
-    global grid, turn, undox, undoy, winx, wino, tie, undoaix, undoaiy, last_turn
+    global grid, turn, undox, undoy, winx, wino, tie, undoaix, undoaiy, last_turn, depth
     win.blit(background, (0, 0))
     if turn == X:
         last_turn = X
@@ -204,12 +196,6 @@ def play():
     else:
         last_turn = O
         drawGrid(green)
-    pygame.draw.rect(win, white, (220, 390, 150, 45))
-    win.blit(pygame.font.SysFont(
-        None, 50).render("Clear", True, black), [230, 397])
-    pygame.draw.rect(win, white, (220, 440, 150, 45))
-    win.blit(pygame.font.SysFont(
-        None, 50).render("Undo", True, black), [230, 447])
     win.blit(pygame.font.SysFont(
         None, 50).render("SCORE", True, white), [30, 385])
     win.blit(pygame.font.SysFont(
@@ -243,6 +229,7 @@ def play():
                     else:
                         win.blit(nought, (25+122*x, 25+122*y))
                     pygame.display.update()
+                    depth += 1
                     if winCheck(turn, x, y):
                         if turn == X:
                             winx += 1
@@ -268,12 +255,33 @@ def play():
                     reset()
                     play()
                 elif 220 <= mx <= 370 and 440 <= my <= 485:
-                    if undox != -1:
-                        undo(undox, undoy)
-                        undox = -1
-                        if undoaix != -1:
-                            undo(undoaix, undoaiy)
-                            undoaix = -1
+                    if not depth:
+                        main()
+                    else:
+                        if undox != -1:
+                            undo(undox, undoy)
+                            undox = -1
+                            if undoaix != -1:
+                                undo(undoaix, undoaiy)
+                                undoaix = -1
+        if not depth:
+            pygame.draw.rect(win, white, (220, 390, 170, 45))
+            win.blit(pygame.font.SysFont(
+                None, 40).render("Swap turn", True, black), [230, 397])
+            pygame.draw.rect(win, white, (220, 440, 170, 45))
+            win.blit(pygame.font.SysFont(
+                None, 40).render("Main Menu", True, black), [230, 447])
+        else:
+            pygame.draw.rect(win, white, (220, 390, 170, 45))
+            win.blit(pygame.font.SysFont(
+                None, 50).render("Clear", True, black), [250, 397])
+            pygame.draw.rect(win, white, (220, 440, 170, 45))
+            if undox != -1:
+                win.blit(pygame.font.SysFont(
+                    None, 50).render("Undo", True, black), [250, 447])
+            else:
+                win.blit(pygame.font.SysFont(
+                    None, 50).render("Undo", True, (128, 128, 128)), [250, 447])
         pygame.display.update()
         Clock.tick(fps)
 
@@ -385,6 +393,7 @@ level = -1
 winx = 0
 wino = 0
 tie = 0
+depth = 0
 
 
 main()
