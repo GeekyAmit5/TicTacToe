@@ -28,7 +28,7 @@ def opponent(turn):
     return X
 
 
-def winCheck(x, y):
+def winCheck(turn, x, y):
     for i in range(3):
         if grid[x][i] != turn:
             break
@@ -69,15 +69,14 @@ def reset():
     for i in range(3):
         for j in range(3):
             grid[i][j] = " "
-    play()
+    turn = opponent(last_turn)
 
 
 def undo(x, y):
     global grid, turn
     grid[x][y] = " "
     turn = opponent(turn)
-    xcord, ycord = coordinates(x, y)
-    win.blit(undopic, (xcord-10, ycord-10))
+    win.blit(undopic, (18+122*x, 18+122*y))
     if turn == X:
         drawGrid(red)
     else:
@@ -85,12 +84,7 @@ def undo(x, y):
 
 
 def endText(msg):
-    global grid, turn, undoaix, undoaiy, undox, undoy, last_turn
-    for i in range(3):
-        for j in range(3):
-            grid[i][j] = " "
-    turn = opponent(last_turn)
-    undoaix, undoaiy, undox, undoy = -1, -1, -1, -1
+    reset()
     text = pygame.font.SysFont(
         None, 100).render(msg, True, white)
     win.blit(text, [200 - 20*len(msg), 170])
@@ -119,37 +113,10 @@ def endText(msg):
         Clock.tick(fps)
 
 
-def isWinner(turn):
-    for i in range(3):
-        for j in range(3):
-            if grid[i][j] != turn:
-                break
-        else:
-            return True
-        for j in range(3):
-            if grid[j][i] != turn:
-                break
-        else:
-            return True
-
-    for i in range(3):
-        if grid[i][i] != turn:
-            break
-    else:
-        return True
-
-    for i in range(3):
-        if grid[i][2 - i] != turn:
-            break
-    else:
-        return True
-    return False
-
-
-def minimaxPro(alpha, beta, isMaximizing):
-    if isWinner(X):
+def minimaxPro(x, y, alpha, beta, isMaximizing):
+    if winCheck(X, x, y):
         return 1
-    if isWinner(O):
+    if winCheck(O, x, y):
         return - 1
     if isTie():
         return 0
@@ -159,7 +126,7 @@ def minimaxPro(alpha, beta, isMaximizing):
             for j in range(3):
                 if grid[i][j] == " ":
                     grid[i][j] = X
-                    score = minimaxPro(alpha, beta, False)
+                    score = minimaxPro(i, j, alpha, beta, False)
                     grid[i][j] = " "
                     bestScore = max(score, bestScore)
                     alpha = max(alpha, score)
@@ -172,7 +139,7 @@ def minimaxPro(alpha, beta, isMaximizing):
             for j in range(3):
                 if grid[i][j] == " ":
                     grid[i][j] = O
-                    score = minimaxPro(alpha, beta, True)
+                    score = minimaxPro(i, j, alpha, beta, True)
                     grid[i][j] = " "
                     bestScore = min(score, bestScore)
                     beta = min(beta, score)
@@ -182,39 +149,40 @@ def minimaxPro(alpha, beta, isMaximizing):
 
 
 def AI():
-    global turn, grid, undoaix, undoaiy, winx, tie
+    global turn, undoaix, undoaiy, winx, tie
     depth = 0
-    pygame.time.delay(200)
     for i in range(3):
         for j in range(3):
             if grid[i][j] == " ":
                 depth += 1
-    if level > 1 and depth == 9:
-        x, y = random.choice([0, 2]), random.choice([0, 2])
+    if depth == 9 and level > 1:
+        x = random.randint(0, 2)
+        if x == 1:
+            y = 1
+        else:
+            y = random.choice([0, 2])
     elif random.choice([1, 1, level, level >= 2, level == 3]):
         bestScore = -math.inf
         for i in range(3):
             for j in range(3):
                 if grid[i][j] == " ":
                     grid[i][j] = X
-                    score = minimaxPro(-math.inf, math.inf, False)
+                    score = minimaxPro(i, j, -math.inf, math.inf, False)
                     grid[i][j] = " "
                     if score > bestScore:
                         bestScore = score
                         x, y = i, j
     else:
         while True:
-            i, j = random.randint(0, 2), random.randint(0, 2)
-            if grid[i][j] == " ":
-                x, y = i, j
+            x, y = random.randint(0, 2), random.randint(0, 2)
+            if grid[x][y] == " ":
                 break
-
-    undoaix, undoaiy = x, y
-    xcord, ycord = coordinates(x, y)
-    win.blit(cross, (xcord, ycord))
-    pygame.display.update()
     grid[x][y] = X
-    if winCheck(x, y):
+    undoaix, undoaiy = x, y
+    win.blit(cross, (27+122*x, 27+122*y))
+    pygame.time.delay(200)
+    pygame.display.update()
+    if winCheck(X, x, y):
         winx += 1
         endText("AI WIN!")
     elif isTie():
@@ -225,139 +193,87 @@ def AI():
         drawGrid(green)
 
 
-def coordinates(x, y):
-    xcord, ycord = 0, 0
-    if x == 0:
-        xcord = 28
-    elif x == 1:
-        xcord = 150
-    elif x == 2:
-        xcord = 270
-
-    if y == 0:
-        ycord = 28
-    elif y == 1:
-        ycord = 150
-    elif y == 2:
-        ycord = 270
-    return [xcord, ycord]
-
-
 def play():
     global grid, turn, undox, undoy, winx, wino, tie, undoaix, undoaiy, last_turn
     win.blit(background, (0, 0))
     if turn == X:
         last_turn = X
         drawGrid(red)
+        if level != -1:
+            AI()
     else:
         last_turn = O
         drawGrid(green)
     pygame.draw.rect(win, white, (220, 390, 150, 45))
-    text = pygame.font.SysFont(
-        None, 50).render("Clear", True, black)
-    win.blit(text, [230, 397])
-
+    win.blit(pygame.font.SysFont(
+        None, 50).render("Clear", True, black), [230, 397])
     pygame.draw.rect(win, white, (220, 440, 150, 45))
-    text = pygame.font.SysFont(
-        None, 50).render("Undo", True, black)
-    win.blit(text, [230, 447])
-
-    text = pygame.font.SysFont(
-        None, 50).render("SCORE", True, white)
-    win.blit(text, [30, 385])
-
-    text = pygame.font.SysFont(
-        None, 40).render("YOU:", True, green)
-    win.blit(text, [80, 416])
-
-    text = pygame.font.SysFont(
-        None, 40).render("TIE:", True, white)
-    win.blit(text, [91, 470])
-
+    win.blit(pygame.font.SysFont(
+        None, 50).render("Undo", True, black), [230, 447])
+    win.blit(pygame.font.SysFont(
+        None, 50).render("SCORE", True, white), [30, 385])
+    win.blit(pygame.font.SysFont(
+        None, 40).render("YOU:", True, green), [80, 416])
+    win.blit(pygame.font.SysFont(
+        None, 40).render("TIE:", True, white), [91, 470])
     if level != -1:
-        text = pygame.font.SysFont(
-            None, 40).render("AI:", True, red)
-        win.blit(text, [109, 441])
-        if turn == X:
-            AI()
+        win.blit(pygame.font.SysFont(
+            None, 40).render("AI:", True, red), [109, 441])
     else:
-        text = pygame.font.SysFont(
-            None, 40).render("FRIEND:", True, red)
-        win.blit(text, [34, 441])
-
-    text = pygame.font.SysFont(
-        None, 45).render(str(wino), True, green)
-    win.blit(text, [150, 416])
-
-    text = pygame.font.SysFont(
-        None, 45).render(str(winx), True, red)
-    win.blit(text, [150, 441])
-
-    text = pygame.font.SysFont(
-        None, 45).render(str(tie), True, white)
-    win.blit(text, [150, 470])
-
+        win.blit(pygame.font.SysFont(
+            None, 40).render("FRIEND:", True, red), [34, 441])
+    win.blit(pygame.font.SysFont(
+        None, 45).render(str(wino), True, green), [150, 416])
+    win.blit(pygame.font.SysFont(
+        None, 45).render(str(winx), True, red), [150, 441])
+    win.blit(pygame.font.SysFont(
+        None, 45).render(str(tie), True, white), [150, 470])
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = pygame.mouse.get_pos()
-                x, y = -1, -1
-                if 35 < mx < 130:
-                    x = 0
-                elif 155 < mx < 250:
-                    x = 1
-                elif 270 < mx < 365:
-                    x = 2
-                if 35 < my < 130:
-                    y = 0
-                elif 155 < my < 250:
-                    y = 1
-                elif 270 < my < 365:
-                    y = 2
-                if x != -1 and y != -1:
-                    if grid[x][y] == " ":
-                        undox, undoy = x, y
-                        xcord, ycord = coordinates(x, y)
+                x, y = (mx-15)//122, (my-15)//122
+                if 0 <= x <= 2 and 0 <= y <= 2 and grid[x][y] == " ":
+                    grid[x][y] = turn
+                    undox, undoy = x, y
+                    if turn == X:
+                        win.blit(cross, (27+122*x, 27+122*y))
+                    else:
+                        win.blit(nought, (25+122*x, 25+122*y))
+                    pygame.display.update()
+                    if winCheck(turn, x, y):
                         if turn == X:
-                            win.blit(cross, (xcord, ycord))
+                            winx += 1
                         else:
-                            win.blit(nought, (xcord, ycord))
+                            wino += 1
+                        if level != -1:
+                            endText("YOU WIN!")
+                        else:
+                            endText(turn+" WIN!")
+                    elif isTie():
+                        tie += 1
+                        endText("TIE!")
+                    else:
+                        turn = opponent(turn)
+                        if turn == X:
+                            drawGrid(red)
+                        else:
+                            drawGrid(green)
                         pygame.display.update()
-                        grid[x][y] = turn
-                        if winCheck(x, y):
-                            if turn == X:
-                                winx += 1
-                            else:
-                                wino += 1
-                            if level != -1:
-                                endText("YOU WIN!")
-                            else:
-                                endText(turn+" WIN!")
-                        elif isTie():
-                            tie += 1
-                            endText("TIE!")
-                        else:
-                            turn = opponent(turn)
-                            if turn == X:
-                                drawGrid(red)
-                            else:
-                                drawGrid(green)
-                            pygame.display.update()
-                            if level != -1:
-                                AI()
-
+                        if level != -1:
+                            AI()
                 elif 220 <= mx <= 370 and 390 <= my <= 435:
                     reset()
+                    play()
                 elif 220 <= mx <= 370 and 440 <= my <= 485:
                     if undox != -1:
                         undo(undox, undoy)
-                        undox, undoy = -1, -1
+                        undox = -1
                         if undoaix != -1:
                             undo(undoaix, undoaiy)
-                            undoaix, undoaiy = -1, -1
-
+                            undoaix = -1
         pygame.display.update()
         Clock.tick(fps)
 
@@ -365,35 +281,23 @@ def play():
 def difficulty():
     global level
     win.blit(background, (0, 0))
-    text = pygame.font.SysFont(
-        None, 60).render("Select Difficulty!", True, white)
-    win.blit(text, [40, 60])
-
+    win.blit(pygame.font.SysFont(
+        None, 60).render("Select Difficulty!", True, white), [40, 60])
     pygame.draw.rect(win, white, (60, 130, 300, 60))
-    text = pygame.font.SysFont(
-        None, 50).render("Easy", True, black)
-    win.blit(text, [85, 140])
-
+    win.blit(pygame.font.SysFont(
+        None, 50).render("Easy", True, black), [85, 140])
     pygame.draw.rect(win, white, (60, 200, 300, 60))
-    text = pygame.font.SysFont(
-        None, 50).render("Medium", True, black)
-    win.blit(text, [85, 210])
-
+    win.blit(pygame.font.SysFont(
+        None, 50).render("Medium", True, black), [85, 210])
     pygame.draw.rect(win, white, (60, 270, 300, 60))
-    text = pygame.font.SysFont(
-        None, 50).render("Hard", True, black)
-    win.blit(text, [85, 280])
-
+    win.blit(pygame.font.SysFont(
+        None, 50).render("Hard", True, black), [85, 280])
     pygame.draw.rect(win, white, (60, 340, 300, 60))
-    text = pygame.font.SysFont(
-        None, 50).render("Impossible", True, black)
-    win.blit(text, [85, 350])
-
+    win.blit(pygame.font.SysFont(
+        None, 50).render("Impossible", True, black), [85, 350])
     pygame.draw.rect(win, white, (60, 410, 300, 60))
-    text = pygame.font.SysFont(
-        None, 50).render("Main Menu", True, black)
-    win.blit(text, [85, 420])
-
+    win.blit(pygame.font.SysFont(
+        None, 50).render("Main Menu", True, black), [85, 420])
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -420,27 +324,20 @@ def difficulty():
 
 def main():
     global level, winx, wino, tie
+    reset()
     winx, wino, tie = 0, 0, 0
     win.blit(background, (0, 0))
-    text = pygame.font.SysFont(
-        None, 70).render("TIC TAC TOE!", True, white)
-    win.blit(text, [50, 80])
-
+    win.blit(pygame.font.SysFont(
+        None, 70).render("TIC TAC TOE!", True, white), [50, 80])
     pygame.draw.rect(win, white, (60, 200, 300, 60))
-    text = pygame.font.SysFont(
-        None, 50).render("YOU VS FRIEND", True, black)
-    win.blit(text, [75, 210])
-
+    win.blit(pygame.font.SysFont(
+        None, 50).render("YOU VS FRIEND", True, black), [75, 210])
     pygame.draw.rect(win, white, (60, 300, 300, 60))
-    text = pygame.font.SysFont(
-        None, 50).render("YOU VS AI", True, black)
-    win.blit(text, [85, 310])
-
+    win.blit(pygame.font.SysFont(
+        None, 50).render("YOU VS AI", True, black), [85, 310])
     pygame.draw.rect(win, white, (60, 400, 300, 60))
-    text = pygame.font.SysFont(
-        None, 50).render("EXIT!", True, black)
-    win.blit(text, [85, 410])
-
+    win.blit(pygame.font.SysFont(
+        None, 50).render("EXIT!", True, black), [85, 410])
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -473,21 +370,21 @@ black = (0, 0, 0)
 white = (255, 255, 255)
 green = (51, 204, 89)
 red = (250, 51, 51)
-level = -1
 
 
-grid = [[" " for x in range(3)] for y in range(3)]
 X = "X"
 O = "O"
+grid = [[" " for x in range(3)] for y in range(3)]
 turn = random.choice([X, O])
+last_turn = turn
+undoaix = -1
+undoaiy = -1
 undox = -1
 undoy = -1
+level = -1
 winx = 0
 wino = 0
 tie = 0
-undoaix = -1
-undoaiy = -1
-last_turn = turn
 
 
 main()
