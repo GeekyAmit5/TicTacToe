@@ -312,20 +312,12 @@ def difficulty():
                 exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = pygame.mouse.get_pos()
-                if 60 <= mx <= 360 and 130 <= my <= 190:
-                    level = 0
-                    play()
-                elif 60 <= mx <= 360 and 200 <= my <= 260:
-                    level = 1
-                    play()
-                elif 60 <= mx <= 360 and 270 <= my <= 330:
-                    level = 2
-                    play()
-                elif 60 <= mx <= 360 and 340 <= my <= 400:
-                    level = 3
-                    play()
-                elif 60 <= mx <= 360 and 410 <= my <= 460:
+                if 60 <= mx <= 360 and 410 <= my <= 460:
                     main()
+                for i in range(4):
+                    if 60 <= mx <= 360 and 130+i*70 <= my <= 190+i*70:
+                        level = i
+                        play()
         pygame.display.update()
         Clock.tick(fps)
 
