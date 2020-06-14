@@ -5,7 +5,9 @@
 import math
 import random
 import pygame
+import time
 import os
+import sys
 
 
 def drawGrid(color):
@@ -16,7 +18,6 @@ def drawGrid(color):
     for i in range(4):
         pygame.draw.line(win, color,
                          (s+d*i, s), (s+d*i, e), w)
-
     for i in range(4):
         pygame.draw.line(win, color,
                          (s, s+d*i), (e, s+d*i), w)
@@ -98,7 +99,8 @@ def endText(msg):
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                exit()
+                pygame.quit()
+                sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = pygame.mouse.get_pos()
                 if 220 <= mx <= 390 and 390 <= my <= 435:
@@ -187,6 +189,7 @@ def AI():
 
 def play():
     global grid, turn, undox, undoy, winx, wino, tie, undoaix, undoaiy, last_turn, depth
+    t0 = time.time()
     win.blit(background, (0, 0))
     if turn == X:
         last_turn = X
@@ -217,11 +220,13 @@ def play():
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                exit()
+                pygame.quit()
+                sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = pygame.mouse.get_pos()
                 x, y = (mx-15)//122, (my-15)//122
                 if 0 <= x <= 2 and 0 <= y <= 2 and grid[x][y] == " ":
+                    t0 = time.time()
                     grid[x][y] = turn
                     undox, undoy = x, y
                     if turn == X:
@@ -282,6 +287,16 @@ def play():
             else:
                 win.blit(pygame.font.SysFont(
                     None, 50).render("Undo", True, (128, 128, 128)), [250, 447])
+        if depth and time_on and time.time() - t0 > time_limit:
+            if level != -1:
+                winx += 1
+                endText("AI WIN!")
+            else:
+                if turn == X:
+                    winx += 1
+                else:
+                    wino += 1
+                endText(opponent(turn)+" WIN!")
         pygame.display.update()
         Clock.tick(fps)
 
@@ -309,7 +324,8 @@ def difficulty():
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                exit()
+                pygame.quit()
+                sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = pygame.mouse.get_pos()
                 if 60 <= mx <= 360 and 410 <= my <= 460:
@@ -322,35 +338,126 @@ def difficulty():
         Clock.tick(fps)
 
 
+def about():
+    win.blit(background, (0, 0))
+    win.blit(pygame.font.SysFont(
+        None, 80).render("Developer", True, white), [70, 30])
+    win.blit(pygame.font.SysFont(
+        None, 80).render("AMIT MISHRA", True, green), [20, 100])
+    win.blit(pygame.font.SysFont(
+        None, 80).render("IIT DELHI", True, white), [70, 170])
+    win.blit(pygame.font.SysFont(
+        None, 65).render("MSc Mathematics", True, white), [20, 240])
+    pygame.draw.rect(win, white, (50, 410, 300, 60))
+    win.blit(pygame.font.SysFont(
+        None, 50).render("MAIN MENU", True, black), [85, 420])
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mx, my = pygame.mouse.get_pos()
+                if 50 <= mx <= 350 and 410 <= my <= 470:
+                    main()
+        pygame.display.update()
+        Clock.tick(fps)
+
+
+def options():
+    global sound_on, time_on
+    win.blit(background, (0, 0))
+    win.blit(pygame.font.SysFont(
+        None, 100).render("OPTIONS", True, white), [30, 80])
+    pygame.draw.rect(win, white, (50, 200, 300, 60))
+    win.blit(pygame.font.SysFont(
+        None, 50).render("ABOUT", True, black), [85, 210])
+    pygame.draw.rect(win, white, (50, 410, 300, 60))
+    win.blit(pygame.font.SysFont(
+        None, 50).render("MAIN MENU", True, black), [85, 420])
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mx, my = pygame.mouse.get_pos()
+                if 50 <= mx <= 350:
+                    for i in range(4):
+                        if 200 + i*70 <= my <= 260 + i*70:
+                            if not i:
+                                about()
+                            elif i == 1:
+                                if time_on:
+                                    time_on = False
+                                else:
+                                    time_on = True
+                            elif i == 2:
+                                if sound_on:
+                                    sound_on = False
+                                else:
+                                    sound_on = True
+                            elif i == 3:
+                                main()
+        if time_on:
+            pygame.draw.rect(win, green, (50, 270, 300, 60))
+            win.blit(pygame.font.SysFont(
+                None, 50).render("TIME LIMIT 3 sec", True, black), [60, 280])
+        else:
+            pygame.draw.rect(win, red, (50, 270, 300, 60))
+            win.blit(pygame.font.SysFont(
+                None, 50).render("TIME LIMIT OFF", True, black), [65, 280])
+        if sound_on:
+            pygame.draw.rect(win, green, (50, 340, 300, 60))
+            win.blit(pygame.font.SysFont(
+                None, 50).render("SOUNDS ON", True, black), [85, 350])
+        else:
+            pygame.draw.rect(win, red, (50, 340, 300, 60))
+            win.blit(pygame.font.SysFont(
+                None, 50).render("SOUNDS OFF", True, black), [85, 350])
+        pygame.display.update()
+        Clock.tick(fps)
+
+
 def main():
     global level, winx, wino, tie
     reset()
     winx, wino, tie = 0, 0, 0
     win.blit(background, (0, 0))
     win.blit(pygame.font.SysFont(
-        None, 70).render("TIC TAC TOE!", True, white), [50, 80])
-    pygame.draw.rect(win, white, (60, 200, 300, 60))
+        None, 80).render("TIC TAC TOE!", True, white), [20, 80])
+    pygame.draw.rect(win, white, (50, 200, 300, 60))
     win.blit(pygame.font.SysFont(
-        None, 50).render("YOU VS FRIEND", True, black), [75, 210])
-    pygame.draw.rect(win, white, (60, 300, 300, 60))
+        None, 50).render("TWO PLAYER", True, black), [85, 210])
+    pygame.draw.rect(win, white, (50, 270, 300, 60))
     win.blit(pygame.font.SysFont(
-        None, 50).render("YOU VS AI", True, black), [85, 310])
-    pygame.draw.rect(win, white, (60, 400, 300, 60))
+        None, 50).render("YOU VS AI", True, black), [85, 280])
+    pygame.draw.rect(win, white, (50, 340, 300, 60))
     win.blit(pygame.font.SysFont(
-        None, 50).render("EXIT!", True, black), [85, 410])
+        None, 50).render("OPTIONS", True, black), [85, 350])
+    pygame.draw.rect(win, red, (50, 410, 300, 60))
+    win.blit(pygame.font.SysFont(
+        None, 50).render("EXIT!", True, black), [85, 420])
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                exit()
+                pygame.quit()
+                sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = pygame.mouse.get_pos()
-                if 60 <= mx <= 360 and 200 <= my <= 260:
-                    level = -1
-                    play()
-                elif 60 <= mx <= 360 and 300 <= my <= 360:
-                    difficulty()
-                elif 60 <= mx <= 360 and 400 <= my <= 460:
-                    exit()
+                if 50 <= mx <= 350:
+                    for i in range(4):
+                        if 200 + i*70 <= my <= 260 + i*70:
+                            if not i:
+                                level = -1
+                                play()
+                            elif i == 1:
+                                difficulty()
+                            elif i == 2:
+                                options()
+                            elif i == 3:
+                                pygame.quit()
+                                sys.exit()
         pygame.display.update()
         Clock.tick(fps)
 
@@ -386,6 +493,9 @@ winx = 0
 wino = 0
 tie = 0
 depth = 0
+time_limit = 3
+time_on = False
+sound_on = True
 
 
 main()
