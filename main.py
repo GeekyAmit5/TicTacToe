@@ -61,10 +61,14 @@ def isTie():
             if grid[i][j] == " ":
                 return False
     else:
+        if sound_on:
+            tiemusic.play()
         return True
 
 
 def reset():
+    if sound_on:
+        clear.play()
     global grid, turn, undoaix, undoaiy, undox, undoy, depth
     undoaix, undoaiy, undox, undoy = -1, -1, -1, -1
     depth = 0
@@ -75,6 +79,8 @@ def reset():
 
 
 def undo(x, y):
+    if sound_on:
+        undomusic.play()
     global grid, turn, depth
     grid[x][y] = " "
     turn = opponent(turn)
@@ -102,9 +108,11 @@ def endText(msg):
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
+                if sound_on:
+                    click.play()
                 mx, my = pygame.mouse.get_pos()
                 if 220 <= mx <= 390 and 390 <= my <= 435:
-                    play()
+                    game()
                 elif 220 <= mx <= 390 and 440 <= my <= 485:
                     main()
         pygame.display.update()
@@ -170,6 +178,8 @@ def AI():
             x, y = random.randint(0, 2), random.randint(0, 2)
             if grid[x][y] == " ":
                 break
+    if sound_on:
+        gameplay.play()
     grid[x][y] = X
     undoaix, undoaiy = x, y
     win.blit(cross, (27+122*x, 27+122*y))
@@ -187,7 +197,7 @@ def AI():
         drawGrid(green)
 
 
-def play():
+def game():
     global grid, turn, undox, undoy, winx, wino, tie, undoaix, undoaiy, last_turn, depth
     t0 = time.time()
     win.blit(background, (0, 0))
@@ -226,6 +236,8 @@ def play():
                 mx, my = pygame.mouse.get_pos()
                 x, y = (mx-15)//122, (my-15)//122
                 if 0 <= x <= 2 and 0 <= y <= 2 and grid[x][y] == " ":
+                    if sound_on:
+                        gameplay.play()
                     t0 = time.time()
                     grid[x][y] = turn
                     undox, undoy = x, y
@@ -258,7 +270,7 @@ def play():
                             AI()
                 elif 220 <= mx <= 370 and 390 <= my <= 435:
                     reset()
-                    play()
+                    game()
                 elif 220 <= mx <= 370 and 440 <= my <= 485:
                     if not depth:
                         main()
@@ -327,13 +339,15 @@ def difficulty():
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
+                if sound_on:
+                    click.play()
                 mx, my = pygame.mouse.get_pos()
                 if 60 <= mx <= 360 and 410 <= my <= 460:
                     main()
                 for i in range(4):
                     if 60 <= mx <= 360 and 130+i*70 <= my <= 190+i*70:
                         level = i
-                        play()
+                        game()
         pygame.display.update()
         Clock.tick(fps)
 
@@ -357,6 +371,8 @@ def about():
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
+                if sound_on:
+                    click.play()
                 mx, my = pygame.mouse.get_pos()
                 if 50 <= mx <= 350 and 410 <= my <= 470:
                     main()
@@ -381,6 +397,8 @@ def options():
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
+                if sound_on:
+                    click.play()
                 mx, my = pygame.mouse.get_pos()
                 if 50 <= mx <= 350:
                     for i in range(4):
@@ -395,8 +413,10 @@ def options():
                             elif i == 2:
                                 if sound_on:
                                     sound_on = False
+                                    pygame.mixer.music.pause()
                                 else:
                                     sound_on = True
+                                    pygame.mixer.music.unpause()
                             elif i == 3:
                                 main()
         if time_on:
@@ -444,13 +464,15 @@ def main():
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
+                if sound_on:
+                    click.play()
                 mx, my = pygame.mouse.get_pos()
                 if 50 <= mx <= 350:
                     for i in range(4):
                         if 200 + i*70 <= my <= 260 + i*70:
                             if not i:
                                 level = -1
-                                play()
+                                game()
                             elif i == 1:
                                 difficulty()
                             elif i == 2:
@@ -471,6 +493,13 @@ background = pygame.image.load(os.path.join("data/images", "background.jpg"))
 cross = pygame.image.load(os.path.join("data/images", "cross.png"))
 nought = pygame.image.load(os.path.join("data/images", "nought.png"))
 undopic = pygame.image.load(os.path.join("data/images", "undo.jpg"))
+clear = pygame.mixer.Sound("data/audio/clear.wav")
+tiemusic = pygame.mixer.Sound("data/audio/tie.wav")
+click = pygame.mixer.Sound("data/audio/click.wav")
+gameplay = pygame.mixer.Sound("data/audio/gameplay.wav")
+undomusic = pygame.mixer.Sound("data/audio/undo.wav")
+pygame.mixer.music.load("data/audio/music.wav")
+pygame.mixer.music.play(-1)
 Clock = pygame.time.Clock()
 fps = 10
 black = (0, 0, 0)
