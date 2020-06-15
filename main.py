@@ -1,5 +1,6 @@
 # This is a game called tic tac toe
 # you can play with friend or AI
+# code improvement left
 
 
 import math
