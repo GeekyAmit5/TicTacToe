@@ -8,6 +8,7 @@ import pygame
 import time
 import os
 import sys
+import pkg_resources.py2_warn
 
 
 def drawGrid(color):
@@ -61,14 +62,10 @@ def isTie():
             if grid[i][j] == " ":
                 return False
     else:
-        if sound_on:
-            tiemusic.play()
         return True
 
 
 def reset():
-    if sound_on:
-        clear.play()
     global grid, turn, undoaix, undoaiy, undox, undoy, depth
     undoaix, undoaiy, undox, undoy = -1, -1, -1, -1
     depth = 0
@@ -79,8 +76,6 @@ def reset():
 
 
 def undo(x, y):
-    if sound_on:
-        undomusic.play()
     global grid, turn, depth
     grid[x][y] = " "
     turn = opponent(turn)
@@ -92,28 +87,33 @@ def undo(x, y):
         drawGrid(green)
 
 
+def playSound(sound):
+    if sound_on:
+        sound.play()
+
+
+def font(size, color, msg):
+    return pygame.font.SysFont(None, size).render(msg, True, color)
+
+
 def endText(msg):
     reset()
-    win.blit(pygame.font.SysFont(
-        None, 100).render(msg, True, white), [200 - 20*len(msg), 170])
-    pygame.draw.rect(win, white, (220, 390, 170, 45))
-    win.blit(pygame.font.SysFont(
-        None, 40).render("Play Again!", True, black), [230, 397])
-    pygame.draw.rect(win, white, (220, 440, 170, 45))
-    win.blit(pygame.font.SysFont(
-        None, 40).render("Main Menu", True, black), [230, 447])
+    pygame.draw.rect(win, white, rect1)
+    pygame.draw.rect(win, white, rect2)
+    win.blit(font(100, white, msg), [200 - 20*len(msg), 170])
+    win.blit(font(40, black, "Play Again!"), [230, 397])
+    win.blit(font(40, black, "Main Menu"), [230, 447])
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if sound_on:
-                    click.play()
+                playSound(click)
                 mx, my = pygame.mouse.get_pos()
-                if 220 <= mx <= 390 and 390 <= my <= 435:
+                if rect1.collidepoint((mx, my)):
                     game()
-                elif 220 <= mx <= 390 and 440 <= my <= 485:
+                elif rect2.collidepoint((mx, my)):
                     main()
         pygame.display.update()
         Clock.tick(fps)
@@ -156,7 +156,7 @@ def minimaxPro(x, y, alpha, beta, isMaximizing):
 
 def AI():
     global turn, undoaix, undoaiy, winx, tie, depth
-    if depth == 9 and level > 1:
+    if depth == 9 and level > 0:
         x = random.randint(0, 2)
         if x == 1:
             y = 1
@@ -178,13 +178,12 @@ def AI():
             x, y = random.randint(0, 2), random.randint(0, 2)
             if grid[x][y] == " ":
                 break
-    if sound_on:
-        gameplay.play()
     grid[x][y] = X
     undoaix, undoaiy = x, y
     win.blit(cross, (27+122*x, 27+122*y))
     pygame.time.delay(200)
     pygame.display.update()
+    playSound(gameplay)
     depth += 1
     if winCheck(X, x, y):
         winx += 1
@@ -236,8 +235,7 @@ def game():
                 mx, my = pygame.mouse.get_pos()
                 x, y = (mx-15)//122, (my-15)//122
                 if 0 <= x <= 2 and 0 <= y <= 2 and grid[x][y] == " ":
-                    if sound_on:
-                        gameplay.play()
+                    playSound(gameplay)
                     t0 = time.time()
                     grid[x][y] = turn
                     undox, undoy = x, y
@@ -339,8 +337,7 @@ def difficulty():
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if sound_on:
-                    click.play()
+                playSound(click)
                 mx, my = pygame.mouse.get_pos()
                 if 60 <= mx <= 360 and 410 <= my <= 460:
                     main()
@@ -371,8 +368,7 @@ def about():
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if sound_on:
-                    click.play()
+                playSound(click)
                 mx, my = pygame.mouse.get_pos()
                 if 50 <= mx <= 350 and 410 <= my <= 470:
                     main()
@@ -397,8 +393,7 @@ def options():
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if sound_on:
-                    click.play()
+                playSound(click)
                 mx, my = pygame.mouse.get_pos()
                 if 50 <= mx <= 350:
                     for i in range(4):
@@ -464,8 +459,7 @@ def main():
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if sound_on:
-                    click.play()
+                playSound(click)
                 mx, my = pygame.mouse.get_pos()
                 if 50 <= mx <= 350:
                     for i in range(4):
@@ -486,13 +480,12 @@ def main():
 
 pygame.init()
 pygame.display.set_caption("Tic Tac Toe")
-pygame.display.set_icon(pygame.image.load(
-    os.path.join("data/images", "icon.png")))
+pygame.display.set_icon(pygame.image.load("data/images/icon.ico"))
 win = pygame.display.set_mode((400, 500))
-background = pygame.image.load(os.path.join("data/images", "background.jpg"))
-cross = pygame.image.load(os.path.join("data/images", "cross.png"))
-nought = pygame.image.load(os.path.join("data/images", "nought.png"))
-undopic = pygame.image.load(os.path.join("data/images", "undo.jpg"))
+background = pygame.image.load("data/images/background.jpg")
+cross = pygame.image.load("data/images/cross.png")
+nought = pygame.image.load("data/images/nought.png")
+undopic = pygame.image.load("data/images/undo.jpg")
 clear = pygame.mixer.Sound("data/audio/clear.wav")
 tiemusic = pygame.mixer.Sound("data/audio/tie.wav")
 click = pygame.mixer.Sound("data/audio/click.wav")
@@ -506,6 +499,8 @@ black = (0, 0, 0)
 white = (255, 255, 255)
 green = (51, 204, 89)
 red = (250, 51, 51)
+rect1 = pygame.Rect(220, 390, 170, 45)
+rect2 = pygame.Rect(220, 440, 170, 45)
 
 
 X = "X"
