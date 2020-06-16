@@ -1,6 +1,5 @@
 # This is a game called tic tac toe
 # you can play with friend or AI
-# code improvement left
 
 
 import math
@@ -57,15 +56,6 @@ def winCheck(turn, x, y):
     return False
 
 
-def isTie():
-    for i in range(3):
-        for j in range(3):
-            if grid[i][j] == " ":
-                return False
-    else:
-        return True
-
-
 def reset():
     global grid, turn, undoaix, undoaiy, undox, undoy, depth
     undoaix, undoaiy, undox, undoy = -1, -1, -1, -1
@@ -93,17 +83,18 @@ def playSound(sound):
         sound.play()
 
 
-def font(size, color, msg):
-    return pygame.font.SysFont(None, size).render(msg, True, color)
+def button(rect, buttoncolor, textsize, textcolor, text):
+    pygame.draw.rect(win, buttoncolor, rect)
+    win.blit(pygame.font.SysFont(None, textsize).render(
+        text, True, textcolor), [rect.x+10, rect.y+10])
 
 
 def endText(msg):
     reset()
-    pygame.draw.rect(win, white, rect1)
-    pygame.draw.rect(win, white, rect2)
-    win.blit(font(100, white, msg), [200 - 20*len(msg), 170])
-    win.blit(font(40, black, "Play Again!"), [230, 397])
-    win.blit(font(40, black, "Main Menu"), [230, 447])
+    win.blit(pygame.font.SysFont(None, 100).render(
+        msg, True, white), [200 - 20*len(msg), 170])
+    button(rect6, white, 40, black, "Play Again!")
+    button(rect7, white, 40, black, "Main Menu")
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -112,29 +103,32 @@ def endText(msg):
             if event.type == pygame.MOUSEBUTTONDOWN:
                 playSound(click)
                 mx, my = pygame.mouse.get_pos()
-                if rect1.collidepoint((mx, my)):
+                if rect6.collidepoint((mx, my)):
                     game()
-                elif rect2.collidepoint((mx, my)):
+                elif rect7.collidepoint((mx, my)):
                     main()
         pygame.display.update()
         Clock.tick(fps)
 
 
 def minimaxPro(x, y, alpha, beta, isMaximizing):
+    global depth
     if winCheck(X, x, y):
         return 1
-    if winCheck(O, x, y):
+    elif winCheck(O, x, y):
         return - 1
-    if isTie():
+    elif depth == 9:
         return 0
-    if isMaximizing:
+    elif isMaximizing:
         bestScore = -math.inf
         for i in range(3):
             for j in range(3):
                 if grid[i][j] == " ":
                     grid[i][j] = X
+                    depth += 1
                     score = minimaxPro(i, j, alpha, beta, False)
                     grid[i][j] = " "
+                    depth -= 1
                     bestScore = max(score, bestScore)
                     alpha = max(alpha, score)
                     if beta <= alpha:
@@ -146,8 +140,10 @@ def minimaxPro(x, y, alpha, beta, isMaximizing):
             for j in range(3):
                 if grid[i][j] == " ":
                     grid[i][j] = O
+                    depth += 1
                     score = minimaxPro(i, j, alpha, beta, True)
                     grid[i][j] = " "
+                    depth -= 1
                     bestScore = min(score, bestScore)
                     beta = min(beta, score)
                     if beta <= alpha:
@@ -169,8 +165,10 @@ def AI():
             for j in range(3):
                 if grid[i][j] == " ":
                     grid[i][j] = X
+                    depth += 1
                     score = minimaxPro(i, j, -math.inf, math.inf, False)
                     grid[i][j] = " "
+                    depth -= 1
                     if score > bestScore:
                         bestScore = score
                         x, y = i, j
@@ -189,7 +187,7 @@ def AI():
     if winCheck(X, x, y):
         winx += 1
         endText("AI WIN!")
-    elif isTie():
+    elif depth == 9:
         tie += 1
         endText("TIE!")
     else:
@@ -255,7 +253,7 @@ def game():
                             endText("YOU WIN!")
                         else:
                             endText(turn+" WIN!")
-                    elif isTie():
+                    elif depth == 9:
                         tie += 1
                         endText("TIE!")
                     else:
@@ -267,10 +265,10 @@ def game():
                         pygame.display.update()
                         if level != -1:
                             AI()
-                elif 220 <= mx <= 370 and 390 <= my <= 435:
+                elif rect6.collidepoint((mx, my)):
                     reset()
                     game()
-                elif 220 <= mx <= 370 and 440 <= my <= 485:
+                elif rect7.collidepoint((mx, my)):
                     if not depth:
                         main()
                     else:
@@ -281,23 +279,14 @@ def game():
                                 undo(undoaix, undoaiy)
                                 undoaix = -1
         if not depth:
-            pygame.draw.rect(win, white, (220, 390, 170, 45))
-            win.blit(pygame.font.SysFont(
-                None, 40).render("Swap turn", True, black), [230, 397])
-            pygame.draw.rect(win, white, (220, 440, 170, 45))
-            win.blit(pygame.font.SysFont(
-                None, 40).render("Main Menu", True, black), [230, 447])
+            button(rect6, white, 40, black, "Swap turn")
+            button(rect7, white, 40, black, "Main Menu")
         else:
-            pygame.draw.rect(win, white, (220, 390, 170, 45))
-            win.blit(pygame.font.SysFont(
-                None, 50).render("Clear", True, black), [250, 397])
-            pygame.draw.rect(win, white, (220, 440, 170, 45))
+            button(rect6, white, 40, black, "Clear")
             if undox != -1:
-                win.blit(pygame.font.SysFont(
-                    None, 50).render("Undo", True, black), [250, 447])
+                button(rect7, white, 40, black, "Undo")
             else:
-                win.blit(pygame.font.SysFont(
-                    None, 50).render("Undo", True, (128, 128, 128)), [250, 447])
+                button(rect7, white, 40, (128, 128, 128), "Undo")
         if depth and time_on and time.time() - t0 > time_limit:
             if level != -1:
                 winx += 1
@@ -317,21 +306,11 @@ def difficulty():
     win.blit(background, (0, 0))
     win.blit(pygame.font.SysFont(
         None, 60).render("Select Difficulty!", True, white), [40, 60])
-    pygame.draw.rect(win, white, (60, 130, 300, 60))
-    win.blit(pygame.font.SysFont(
-        None, 50).render("Easy", True, black), [85, 140])
-    pygame.draw.rect(win, white, (60, 200, 300, 60))
-    win.blit(pygame.font.SysFont(
-        None, 50).render("Medium", True, black), [85, 210])
-    pygame.draw.rect(win, white, (60, 270, 300, 60))
-    win.blit(pygame.font.SysFont(
-        None, 50).render("Hard", True, black), [85, 280])
-    pygame.draw.rect(win, white, (60, 340, 300, 60))
-    win.blit(pygame.font.SysFont(
-        None, 50).render("Impossible", True, black), [85, 350])
-    pygame.draw.rect(win, white, (60, 410, 300, 60))
-    win.blit(pygame.font.SysFont(
-        None, 50).render("Main Menu", True, black), [85, 420])
+    button(rect1, white, 50, black, "Easy")
+    button(rect2, white, 50, black, "Medium")
+    button(rect3, white, 50, black, "Hard")
+    button(rect4, white, 50, black, "Impossible")
+    button(rect5, white, 50, black, "Main Menu")
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -340,12 +319,20 @@ def difficulty():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 playSound(click)
                 mx, my = pygame.mouse.get_pos()
-                if 60 <= mx <= 360 and 410 <= my <= 460:
+                if rect1.collidepoint((mx, my)):
+                    level = 0
+                    game()
+                elif rect2.collidepoint((mx, my)):
+                    level = 1
+                    game()
+                elif rect3.collidepoint((mx, my)):
+                    level = 2
+                    game()
+                elif rect4.collidepoint((mx, my)):
+                    level = 3
+                    game()
+                elif rect5.collidepoint((mx, my)):
                     main()
-                for i in range(4):
-                    if 60 <= mx <= 360 and 130+i*70 <= my <= 190+i*70:
-                        level = i
-                        game()
         pygame.display.update()
         Clock.tick(fps)
 
@@ -360,9 +347,7 @@ def about():
         None, 80).render("IIT DELHI", True, white), [70, 170])
     win.blit(pygame.font.SysFont(
         None, 65).render("MSc Mathematics", True, white), [20, 240])
-    pygame.draw.rect(win, white, (50, 410, 300, 60))
-    win.blit(pygame.font.SysFont(
-        None, 50).render("MAIN MENU", True, black), [85, 420])
+    button(rect5, white, 50, black, "MAIN MENU")
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -371,7 +356,7 @@ def about():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 playSound(click)
                 mx, my = pygame.mouse.get_pos()
-                if 50 <= mx <= 350 and 410 <= my <= 470:
+                if rect5.collidepoint((mx, my)):
                     main()
         pygame.display.update()
         Clock.tick(fps)
@@ -382,12 +367,8 @@ def options():
     win.blit(background, (0, 0))
     win.blit(pygame.font.SysFont(
         None, 100).render("OPTIONS", True, white), [30, 80])
-    pygame.draw.rect(win, white, (50, 200, 300, 60))
-    win.blit(pygame.font.SysFont(
-        None, 50).render("ABOUT", True, black), [85, 210])
-    pygame.draw.rect(win, white, (50, 410, 300, 60))
-    win.blit(pygame.font.SysFont(
-        None, 50).render("MAIN MENU", True, black), [85, 420])
+    button(rect2, white, 50, black, "ABOUT")
+    button(rect5, white, 50, black, "MAIN MENU")
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -396,41 +377,30 @@ def options():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 playSound(click)
                 mx, my = pygame.mouse.get_pos()
-                if 50 <= mx <= 350:
-                    for i in range(4):
-                        if 200 + i*70 <= my <= 260 + i*70:
-                            if not i:
-                                about()
-                            elif i == 1:
-                                if time_on:
-                                    time_on = False
-                                else:
-                                    time_on = True
-                            elif i == 2:
-                                if sound_on:
-                                    sound_on = False
-                                    pygame.mixer.music.pause()
-                                else:
-                                    sound_on = True
-                                    pygame.mixer.music.unpause()
-                            elif i == 3:
-                                main()
+                if rect2.collidepoint((mx, my)):
+                    about()
+                elif rect3.collidepoint((mx, my)):
+                    if time_on:
+                        time_on = False
+                    else:
+                        time_on = True
+                elif rect4.collidepoint((mx, my)):
+                    if sound_on:
+                        sound_on = False
+                        pygame.mixer.music.pause()
+                    else:
+                        sound_on = True
+                        pygame.mixer.music.unpause()
+                elif rect5.collidepoint((mx, my)):
+                    main()
         if time_on:
-            pygame.draw.rect(win, green, (50, 270, 300, 60))
-            win.blit(pygame.font.SysFont(
-                None, 50).render("TIME LIMIT 3 sec", True, black), [60, 280])
+            button(rect3, green, 50, black, "TIME LIMIT 3 sec")
         else:
-            pygame.draw.rect(win, red, (50, 270, 300, 60))
-            win.blit(pygame.font.SysFont(
-                None, 50).render("TIME LIMIT OFF", True, black), [65, 280])
+            button(rect3, red, 50, black, "TIME LIMIT OFF")
         if sound_on:
-            pygame.draw.rect(win, green, (50, 340, 300, 60))
-            win.blit(pygame.font.SysFont(
-                None, 50).render("SOUNDS ON", True, black), [85, 350])
+            button(rect4, green, 50, black, "SOUNDS ON")
         else:
-            pygame.draw.rect(win, red, (50, 340, 300, 60))
-            win.blit(pygame.font.SysFont(
-                None, 50).render("SOUNDS OFF", True, black), [85, 350])
+            button(rect4, red, 50, black, "SOUNDS OFF")
         pygame.display.update()
         Clock.tick(fps)
 
@@ -442,18 +412,10 @@ def main():
     win.blit(background, (0, 0))
     win.blit(pygame.font.SysFont(
         None, 80).render("TIC TAC TOE!", True, white), [20, 80])
-    pygame.draw.rect(win, white, (50, 200, 300, 60))
-    win.blit(pygame.font.SysFont(
-        None, 50).render("TWO PLAYER", True, black), [85, 210])
-    pygame.draw.rect(win, white, (50, 270, 300, 60))
-    win.blit(pygame.font.SysFont(
-        None, 50).render("YOU VS AI", True, black), [85, 280])
-    pygame.draw.rect(win, white, (50, 340, 300, 60))
-    win.blit(pygame.font.SysFont(
-        None, 50).render("OPTIONS", True, black), [85, 350])
-    pygame.draw.rect(win, red, (50, 410, 300, 60))
-    win.blit(pygame.font.SysFont(
-        None, 50).render("EXIT!", True, black), [85, 420])
+    button(rect2, white, 50, black, "TWO PLAYER")
+    button(rect3, white, 50, black, "YOU VS AI")
+    button(rect4, white, 50, black, "OPTIONS")
+    button(rect5, white, 50, black, "EXIT!")
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -462,19 +424,16 @@ def main():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 playSound(click)
                 mx, my = pygame.mouse.get_pos()
-                if 50 <= mx <= 350:
-                    for i in range(4):
-                        if 200 + i*70 <= my <= 260 + i*70:
-                            if not i:
-                                level = -1
-                                game()
-                            elif i == 1:
-                                difficulty()
-                            elif i == 2:
-                                options()
-                            elif i == 3:
-                                pygame.quit()
-                                sys.exit()
+                if rect2.collidepoint((mx, my)):
+                    level = -1
+                    game()
+                elif rect3.collidepoint((mx, my)):
+                    difficulty()
+                elif rect4.collidepoint((mx, my)):
+                    options()
+                elif rect5.collidepoint((mx, my)):
+                    pygame.quit()
+                    sys.exit()
         pygame.display.update()
         Clock.tick(fps)
 
@@ -495,13 +454,18 @@ undomusic = pygame.mixer.Sound("data/audio/undo.wav")
 pygame.mixer.music.load("data/audio/music.wav")
 pygame.mixer.music.play(-1)
 Clock = pygame.time.Clock()
+rect1 = pygame.Rect(50, 130, 300, 60)
+rect2 = pygame.Rect(50, 200, 300, 60)
+rect3 = pygame.Rect(50, 270, 300, 60)
+rect4 = pygame.Rect(50, 340, 300, 60)
+rect5 = pygame.Rect(50, 410, 300, 60)
+rect6 = pygame.Rect(220, 390, 170, 45)
+rect7 = pygame.Rect(220, 440, 170, 45)
 fps = 10
 black = (0, 0, 0)
 white = (255, 255, 255)
 green = (51, 204, 89)
 red = (250, 51, 51)
-rect1 = pygame.Rect(220, 390, 170, 45)
-rect2 = pygame.Rect(220, 440, 170, 45)
 
 
 X = "X"
