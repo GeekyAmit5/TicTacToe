@@ -9,6 +9,8 @@ import time
 import os
 import sys
 import pkg_resources.py2_warn
+import re
+import fileinput
 
 
 def drawGrid(color):
@@ -384,13 +386,27 @@ def options():
                         time_on = False
                     else:
                         time_on = True
+                    fh = fileinput.input("data/settings.txt", inplace=True)
+                    for line in fh:
+                        if line.startswith("time"):
+                            words = line.split()
+                            line = line.replace(
+                                str(int(words[-1])), str(1-int(words[-1])))
+                        sys.stdout.write(line)
                 elif rect4.collidepoint((mx, my)):
                     if sound_on:
                         sound_on = False
                         pygame.mixer.music.pause()
                     else:
                         sound_on = True
-                        pygame.mixer.music.unpause()
+                        pygame.mixer.music.play(-1)
+                    fh = fileinput.input("data/settings.txt", inplace=True)
+                    for line in fh:
+                        if line.startswith("sound"):
+                            words = line.split()
+                            line = line.replace(
+                                str(int(words[-1])), str(1-int(words[-1])))
+                        sys.stdout.write(line)
                 elif rect5.collidepoint((mx, my)):
                     main()
         if time_on:
@@ -452,7 +468,6 @@ click = pygame.mixer.Sound("data/audio/click.wav")
 gameplay = pygame.mixer.Sound("data/audio/gameplay.wav")
 undomusic = pygame.mixer.Sound("data/audio/undo.wav")
 pygame.mixer.music.load("data/audio/music.wav")
-pygame.mixer.music.play(-1)
 Clock = pygame.time.Clock()
 rect1 = pygame.Rect(50, 130, 300, 60)
 rect2 = pygame.Rect(50, 200, 300, 60)
@@ -483,8 +498,19 @@ wino = 0
 tie = 0
 depth = 0
 time_limit = 3
-time_on = False
-sound_on = True
+time_on = None
+sound_on = None
+fh = open("data/settings.txt")
+for line in fh:
+    if line.startswith("sound"):
+        pos = line.find("=")
+        sound_on = bool(int(line[pos+1:]))
+    elif line.startswith("time"):
+        pos = line.find("=")
+        time_on = bool(int(line[pos+1:]))
+fh.close()
 
+if sound_on:
+    pygame.mixer.music.play(-1)
 
 main()
