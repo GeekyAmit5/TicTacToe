@@ -500,11 +500,18 @@ depth = 0
 time_limit = 3
 time_on = None
 sound_on = None
+
+try:
+    fh = open("data/settings.txt", "x")
+    fh.write("time_on = 0\nsound_on = 1")
+except:
+    pass
 fh = open("data/settings.txt")
+
 for line in fh:
     if line.startswith("sound"):
-        pos = line.find("=")
-        sound_on = bool(int(line[pos+1:]))
+        words = line.split()
+        sound_on = bool(int(words[-1]))
     elif line.startswith("time"):
         pos = line.find("=")
         time_on = bool(int(line[pos+1:]))
